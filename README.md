@@ -20,4 +20,5 @@ In your ```.bashrc```, add the following
 Make sure you re-source your ```.bashrc``` upon making this changes. Now, onto building the project!
 
 ## Build
-1.. In the root directory, run ```catkin\_make```
+1. In the root directory, run ```catkin_make``` to build the project
+2. "Source devil" as we like to say it, to use the non-built-in package created in this project by running ```source devel/setup.bash```.
