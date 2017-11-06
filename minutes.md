@@ -14,3 +14,7 @@ A log of all of our meetings
 
 ## 6 November 2017
 ### 1000-1600
+*Followed Lab 4 to git clone the ar_track_alvar directory into our workspace and and the appropriate 
+   *changes that we discovered on Nov.3 2017 
+   *Also decided to do some research on how to move the arms of Baxter and discovered that 
+*it would be best to first plan with MoveIt and see if we can gain any helpful resources. 
