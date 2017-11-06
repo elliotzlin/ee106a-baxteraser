@@ -11,3 +11,6 @@ A log of all of our meetings
   * Set ```output_frame``` to ```/head_camera```
 * Did a ```rostopic echo``` on the ```/ar_pose_marker``` to see the positions
   * When you hold a tag in front of the camera, you see the Cartesian coordinates publishe to this topic
+
+## 6 November 2017
+### 1000-1600
