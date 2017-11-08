@@ -42,3 +42,7 @@ A log of all of our meetings
   * Very accurate detection; we'll probably switch to the Sawyer
 * Started testing the inverse kinematics
   * Not going well so far; keeps aborting
+
+## 7 November 2017
+### 2100-2300
+* NOTE Sawyer cameras are on topics ```/io/internal_camera/*```
