@@ -53,3 +53,5 @@ A log of all of our meetings
   * Use ```rosrun tf tf_echo head_camera right_wrist``` or something to check positions
 * Discovered consistent f-up in inverse kinematics
   * Always get error ```/sdk_position_w_id_joint_trajectory_action_server_right: Exceeded Error Threshold on right_j5: <some number>```
+* Yuge bug, found that our planning frame was actually ```/base``` and not desired ```/head_camera```
+  * Put ```print(group.get_planning_frame())``` in ik node
