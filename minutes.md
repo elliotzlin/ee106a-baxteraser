@@ -46,3 +46,10 @@ A log of all of our meetings
 ## 7 November 2017
 ### 2100-2300
 * NOTE Sawyer cameras are on topics ```/io/internal_camera/*```
+* Because this is getting annoying, cheat sheet for setting up inverse kinematics
+  * Make sure robot is enabled
+  * Run ```rosrun intera_interface joint_trajectory_action_server.py```
+  * Run ```roslaunch sawyer_moveit_config move_group.launch electric_gripper:=true```
+  * Use ```rosrun tf tf_echo head_camera right_wrist``` or something to check positions
+* Discovered consistent f-up in inverse kinematics
+  * Always get error ```/sdk_position_w_id_joint_trajectory_action_server_right: Exceeded Error Threshold on right_j5: <some number>```
