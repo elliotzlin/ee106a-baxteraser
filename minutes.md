@@ -64,3 +64,8 @@ A log of all of our meetings
 * 0033, we have successfully passed checkpoint 1; inverse kinematics to a pose specified by the AR tag
 * Found a straight edge; AR tags actually 5.5 centimeters
 * Recorded a demo of checkpoint 1
+
+## 9 November 2017
+### 1415-1700
+* Identified 'torso' joint to constrain, ```right_torso_itb```
+* When echoing joint states, joint of interest in ```right_j0```
