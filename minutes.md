@@ -55,9 +55,10 @@ A log of all of our meetings
   * Always get error ```/sdk_position_w_id_joint_trajectory_action_server_right: Exceeded Error Threshold on right_j5: <some number>```
 * Yuge bug, found that our planning frame was actually ```/base``` and not desired ```/head_camera```
   * Put ```print(group.get_planning_frame())``` in ik node
+* CORRECTION we actually had to set ```group.set_pose_reference_frame('head_camera')```
 
 ## 8 November 2017
-### 0000-
+### 0000-0115
 * Overflow from yesterday night's session
 * 0025, we have successfully verified our inverse kinematics solution
 * 0033, we have successfully passed checkpoint 1; inverse kinematics to a pose specified by the AR tag
