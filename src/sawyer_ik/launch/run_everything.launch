@@ -1,0 +1,3 @@
+<launch>
+<arg name="dash_e" value="-e" />
+<node pkg="intera_interface" type="intera_interface" name="joint_trajectory_action_server.py"
