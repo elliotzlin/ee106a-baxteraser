@@ -69,3 +69,6 @@ A log of all of our meetings
 ### 1415-1700
 * Identified 'torso' joint to constrain, ~~```right_torso_itb```~~ ```right_l0```
 * When echoing joint states, joint of interest in ```right_j0```
+* Determined two main changes. 
+* 1.) Instead of constraining the links of the Sawyer we will be constraining the angle in which the joint could rotate. 
+* 2.) Instead of calculating the transformation with respect to the head_camera we will now be calculating with respect to the body. 
