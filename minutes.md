@@ -80,3 +80,4 @@ A log of all of our meetings
   * Creates a service to MoveIt
   * Creates a subscriber to the ```ar_pose_marker``` topic
   * Calculates and prints the most recent transformed marker pose on user command
+  * Finished running all nodes and launch files into one launch file
