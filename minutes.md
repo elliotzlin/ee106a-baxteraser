@@ -71,4 +71,8 @@ A log of all of our meetings
 * When echoing joint states, joint of interest in ```right_j0```
 * Determined two main changes. 
 * 1.) Instead of constraining the links of the Sawyer we will be constraining the angle in which the joint could rotate. 
-* 2.) Instead of calculating the transformation with respect to the head_camera we will now be calculating with respect to the body. 
+* 2.) Instead of calculating the transformation with respect to the head_camera we will now be calculating with respect to the body.
+* We are now creating a node and package that will tie everything together nicely. 
+
+## 10 November 2017 
+### 0000 - 
