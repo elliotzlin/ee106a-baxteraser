@@ -69,10 +69,14 @@ A log of all of our meetings
 ### 1415-1700
 * Identified 'torso' joint to constrain, ~~```right_torso_itb```~~ ```right_l0```
 * When echoing joint states, joint of interest in ```right_j0```
-* Determined two main changes. 
-* 1.) Instead of constraining the links of the Sawyer we will be constraining the angle in which the joint could rotate. 
-* 2.) Instead of calculating the transformation with respect to the head_camera we will now be calculating with respect to the body.
+* Determined two main changes from talking with Valmik:
+  1. Instead of constraining the links of the Sawyer we will be constraining the angle in which the joint could rotate. 
+  1. Instead of calculating the transformation with respect to the head_camera we will now be calculating with respect to the body.
 * We are now creating a node and package that will tie everything together nicely. 
 
 ## 10 November 2017 
 ### 0000 - 
+* Successfully completed AR tag transformations in```ik_node```
+  * Creates a service to MoveIt
+  * Creates a subscriber to the ```ar_pose_marker``` topic
+  * Calculates and prints the most recent transformed marker pose on user command
