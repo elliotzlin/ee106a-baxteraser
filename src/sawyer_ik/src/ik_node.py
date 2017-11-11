@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import rospy
+from moveit_msgs.msg import Constraints, JointConstraint
 from moveit_msgs.srv import GetPositionIK, GetPositionIKRequest, GetPositionIKResponse
 from geometry_msgs.msg import PoseStamped, TransformStamped
 from tf import TransformerROS, TransformListener
@@ -9,6 +10,10 @@ from ar_track_alvar_msgs.msg import AlvarMarkers
 # Global variables we can access from other functions
 transformed_message = None
 transformer = None
+
+# Desired joint constraints
+TORSO_POSITION = -1.5
+TOLERANCE = 0.5
 
 # Listener to handle pulling information about the AR tag(s)
 def ar_tag_listener():
@@ -21,6 +26,8 @@ def transform_ar_tag(message):
     and stores it in transformed_message
     """
     global transformed_message
+    if message.markers == []:
+        return
     pose = message.markers[0].pose # Assume one marker for now
     pose.header.frame_id = '/head_camera'
     transformed_message = transformer.transformPose('/base', pose)
@@ -33,6 +40,14 @@ def inverse_kinematics(message):
     request.ik_request.ik_link_name = "right_gripper"
     request.ik_request.attempts = 50
     request.ik_request.pose_stamped.header.frame_id = "base"
+
+    # Create joint constraints
+    constraints = Constraints()
+    joint_constr = JointConstraint()
+    joint_constr.joint_name = "right_j0"
+    joint_constr.position = TORSO_POSITION
+    joint_constr.tolerance_above = TOLERANCE
+    joint_constr.tolerance_below = TOLERANCE
 
     #Get user input of (x,y,z) coordinates
     #x_coord = raw_input('Enter x coordinate: ')
