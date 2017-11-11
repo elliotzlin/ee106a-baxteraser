@@ -49,10 +49,10 @@ def inverse_kinematics(message):
     request.ik_request.pose_stamped.pose.position.z = float(z_coord)
 
     # Get quaternions 
-    x_quat = raw_input('Enter x quaternion: ') 
-    y_quat = raw_input('Enter y quaternion: ') 
-    z_quat = raw_input('Enter z quaternion: ') 
-    w_quat = raw_input('Enter w quat: ') 
+    x_quat = message.pose.quaternion.x 
+    y_quat = -1.0*message.pose.quaternion.y 
+    z_quat = -1.0*message.pose.quaternion.z
+    w_quat = message.pose.quaternion.w
 
     #Set the desired orientation for the end effector HERE 
     request.ik_request.pose_stamped.pose.orientation.x = float(x_quat    )
