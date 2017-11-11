@@ -85,4 +85,8 @@ A log of all of our meetings
 ## 10 November 2017 
 ### 1500 - 
 * Working locally on making the IK prefrom the entire process at the push of the enter key
-* Making sure that GIT properly shows the name of the individual whom commited. 
+* Making sure that GIT properly shows the name of the individual whom commited.
+* Finally made a file that runs everything and reached CHECKPOINT 1 ... AGAIN ... 
+* Alan is down. Long live Ada!
+* Need to continue our work, making sure that the robot does not spin out of control 
+

@@ -9,7 +9,7 @@ from ar_track_alvar_msgs.msg import AlvarMarkers
 
 # Global variables we can access from other functions
 transformed_message = None
-transformer = None
+tf_listener = None
 
 # Desired joint constraints
 TORSO_POSITION = -1.5
@@ -28,16 +28,40 @@ def transform_ar_tag(message):
     global transformed_message
     if message.markers == []:
         return
+
+    # Create a TransformerROS to transform the AR tag poses we get
+    t = TransformerROS(True, rospy.Duration(10.0))
+
+    # Wait for our transform and get it
+    tf_listener.waitForTransform('/head_camera', '/base', rospy.Time(), rospy.Duration(5.0))
+    (trans,rot) = tf_listener.lookupTransform('/head_camera', '/base', rospy.Time(0))
+
+    # Create our TransformStamped object
+    transform = TransformStamped()
+    transform.child_frame_id = 'base'
+    transform.header.frame_id = 'head_camera'
+    transform.header.stamp = rospy.Time(0)
+    transform.transform.translation.x = trans[0]
+    transform.transform.translation.y = trans[1]
+    transform.transform.translation.z = trans[2]
+    transform.transform.rotation.x = rot[0]
+    transform.transform.rotation.y = rot[1]
+    transform.transform.rotation.z = rot[2]
+    transform.transform.rotation.w = rot[3]
+
+    # Set the transform for t
+    t.setTransform(transform)
+
     pose = message.markers[0].pose # Assume one marker for now
     pose.header.frame_id = '/head_camera'
-    transformed_message = transformer.transformPose('/base', pose)
+    transformed_message = t.transformPose('/base', pose)
 
 def inverse_kinematics(message): 
     print(message)
     # Construct the request
     request = GetPositionIKRequest()
     request.ik_request.group_name = "right_arm"
-    request.ik_request.ik_link_name = "right_gripper"
+    request.ik_request.ik_link_name = "right_wrist"
     request.ik_request.attempts = 50
     request.ik_request.pose_stamped.header.frame_id = "base"
 
@@ -64,10 +88,10 @@ def inverse_kinematics(message):
     request.ik_request.pose_stamped.pose.position.z = float(z_coord)
 
     # Get quaternions 
-    x_quat = 0.0 
-    y_quat = 1.0 
-    z_quat = 0.0
-    w_quat = 0.0
+    x_quat = message.pose.orientation.x 
+    y_quat = message.pose.orientation.y 
+    z_quat = -1.0*message.pose.orientation.z
+    w_quat = message.pose.orientation.w
 
     #Set the desired orientation for the end effector HERE 
     request.ik_request.pose_stamped.pose.orientation.x = float(x_quat    )
@@ -101,35 +125,9 @@ if __name__ == '__main__':
     # Create the function used to call the service
     compute_ik = rospy.ServiceProxy('compute_ik', GetPositionIK)
 
-
+    global tf_listener
     # Listen for transforms with tf
-    listener = TransformListener()
-
-    # Create a TransformerROS to transform the AR tag poses we get
-    t = TransformerROS(True, rospy.Duration(10.0))
-
-    # Wait for our transform and get it
-    listener.waitForTransform('/head_camera', '/base', rospy.Time(), rospy.Duration(5.0))
-    (trans,rot) = listener.lookupTransform('/head_camera', '/base', rospy.Time(0))
-
-    # Create our TransformStamped object
-    transform = TransformStamped()
-    transform.child_frame_id = 'base'
-    transform.header.frame_id = 'head_camera'
-    transform.header.stamp = rospy.Time(0)
-    transform.transform.translation.x = trans[0]
-    transform.transform.translation.y = trans[1]
-    transform.transform.translation.z = trans[2]
-    transform.transform.rotation.x = rot[0]
-    transform.transform.rotation.y = rot[1]
-    transform.transform.rotation.z = rot[2]
-    transform.transform.rotation.w = rot[3]
-
-    # Set the transform for t
-    t.setTransform(transform)
-
-    global transformer
-    transformer = t
+    tf_listener = TransformListener()
 
     # Create a subscriber to get AR tag positions
     ar_tag_listener()
