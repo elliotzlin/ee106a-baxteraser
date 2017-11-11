@@ -75,9 +75,14 @@ A log of all of our meetings
 * We are now creating a node and package that will tie everything together nicely. 
 
 ## 10 November 2017 
-### 0000 - 
+### 0000 - 0400
 * Successfully completed AR tag transformations in```ik_node```
   * Creates a service to MoveIt
   * Creates a subscriber to the ```ar_pose_marker``` topic
   * Calculates and prints the most recent transformed marker pose on user command
   * Finished running all nodes and launch files into one launch file
+
+## 10 November 2017 
+### 1500 - 
+* Working locally on making the IK prefrom the entire process at the push of the enter key
+* Making sure that GIT properly shows the name of the individual whom commited. 
