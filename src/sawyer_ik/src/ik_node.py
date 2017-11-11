@@ -34,6 +34,50 @@ def inverse_kinematics(message):
     request.ik_request.attempts = 50
     request.ik_request.pose_stamped.header.frame_id = "base"
 
+    #Get user input of (x,y,z) coordinates
+    #x_coord = raw_input('Enter x coordinate: ')
+    x_coord = message.pose.position.x
+    #y_coord = raw_input('Enter y coordinate: ')
+    y_coord = message.pose.position.y
+    #z_coord = raw_input('Enter z coordinate: ')
+    Z_coord = message.pose.position.z
+    print 'x: {} y: {} z: {}'.format(x_coord, y_coord, z_coord)
+
+    #Set the desired position for the end effector HERE 
+    request.ik_request.pose_stamped.pose.position.x = float(x_coord)
+    request.ik_request.pose_stamped.pose.position.y = float(y_coord)
+    request.ik_request.pose_stamped.pose.position.z = float(z_coord)
+
+    # Get quaternions 
+    x_quat = raw_input('Enter x quaternion: ') 
+    y_quat = raw_input('Enter y quaternion: ') 
+    z_quat = raw_input('Enter z quaternion: ') 
+    w_quat = raw_input('Enter w quat: ') 
+
+    #Set the desired orientation for the end effector HERE 
+    request.ik_request.pose_stamped.pose.orientation.x = float(x_quat    )
+    request.ik_request.pose_stamped.pose.orientation.y = float(y_quat    )
+    request.ik_request.pose_stamped.pose.orientation.z = float(z_quat    )
+    request.ik_request.pose_stamped.pose.orientation.w = float(w_quat    )
+    try: 
+        #Send the request to the service 
+        response = compute_ik(request)
+        
+        #Print the respondse HERE 
+        print(response)
+        group = MoveGroupCommander("right_arm")
+
+        #Set pose reference frame
+        #Comment out the set pose because we are getting the transform with respect to the base 
+        #group.set_pose_reference_frame("head_camera")
+        #Setting position and orientation target
+        group.set_pose_target(request.ik_request.pose_stamped)
+
+        group.go()
+    
+    except rospy.ServiceException, e:
+        print "Service call failed: %s"%e
+
 if __name__ == '__main__':
     # Wait for the IK service to become available
     rospy.wait_for_service('compute_ik')
@@ -41,6 +85,7 @@ if __name__ == '__main__':
 
     # Create the function used to call the service
     compute_ik = rospy.ServiceProxy('compute_ik', GetPositionIK)
+
 
     # Listen for transforms with tf
     listener = TransformListener()
