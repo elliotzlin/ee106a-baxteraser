@@ -61,11 +61,12 @@ def inverse_kinematics(message):
     # Construct the request
     request = GetPositionIKRequest()
     request.ik_request.group_name = "right_arm"
-    request.ik_request.ik_link_name = "right_wrist"
+    request.ik_request.ik_link_name = "right_hand"
     request.ik_request.attempts = 50
     request.ik_request.pose_stamped.header.frame_id = "base"
 
     # Create joint constraints
+    #This is joint constraint will need to be set at the group 
     constraints = Constraints()
     joint_constr = JointConstraint()
     joint_constr.joint_name = "right_j0"
