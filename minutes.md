@@ -91,7 +91,16 @@ A log of all of our meetings
 * Need to continue our work, making sure that the robot does not spin out of control 
 
 ## 12 November 2017 
-## 2300 - 0100
+### 2300 - 0100
 * Confirmed that Ada has serious error in finding the depth of an AR tag. Task at hand is to stop Ada from rotating camera away from tag.
 * https://docs.ros.org/kinetic/api/moveit_tutorials/html/doc/pr2_tutorials/planning/src/doc/move_group_interface_tutorial.html#planning-with-path-constraints This document might help us understand how to set some path constraints.
 * The IK is off by approxiamtely the legnth of the wrist 
+
+## 13 November 2017 
+### 1900 - 
+* Will begin testing whether or no the changes had an effect 
+* Found a huge problem when trying to run any type of motion planning with sawyer. You need to make sure that the electric_gripper:=true or else you will get a collision error. This error exsisted in the launch file. 
+* Decided to remove the following from the launch file 
+* <arg name="electric_gripper" value="true" />
+* <include file="$(find sawyer_moveit_config)/launch/sawyer_moveit.launch" /> 
+* Trying to figure out how to set some path constraints
