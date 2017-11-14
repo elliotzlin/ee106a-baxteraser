@@ -2,8 +2,9 @@
         <!-- This is starting the joint server -->
         <node pkg="intera_interface"  name="action_server" type="joint_trajectory_action_server.py" output="screen" />
 
-        <arg name="electric_gripper" value="false" />
-        <include file="$(find sawyer_moveit_config)/launch/sawyer_moveit.launch"/>
+        <include file="$(find sawyer_moveit_config)/launch/sawyer_moveit.launch">
+            <arg name="electric_gripper" value="true" />
+        </include>
 
         <include file="/home/cc/ee106a/fa17/class/ee106a-aaq/ros_workspaces/ee106a-baxteraser/src/ar_track_alvar/launch/sawyer_detect.launch"/>
 
