@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from moveit_msgs.msg import Constraints, JointConstraint
+from moveit_msgs.msg import Constraints, JointConstraint, OrientationConstraint
 from moveit_msgs.srv import GetPositionIK, GetPositionIKRequest, GetPositionIKResponse
 from geometry_msgs.msg import PoseStamped, TransformStamped
 from tf import TransformerROS, TransformListener
@@ -61,26 +61,40 @@ def inverse_kinematics(message):
     # Construct the request
     request = GetPositionIKRequest()
     request.ik_request.group_name = "right_arm"
-    request.ik_request.ik_link_name = "right_wrist"
+    request.ik_request.ik_link_name = "right_gripper"
     request.ik_request.attempts = 50
     request.ik_request.pose_stamped.header.frame_id = "base"
 
     # Create joint constraints
-    constraints = Constraints()
-    joint_constr = JointConstraint()
-    joint_constr.joint_name = "right_j0"
-    joint_constr.position = TORSO_POSITION
-    joint_constr.tolerance_above = TOLERANCE
-    joint_constr.tolerance_below = TOLERANCE
-
+    #This is joint constraint will need to be set at the group 
+    #constraints = Constraints()
+    #constraints.joint_constraints.joint_name = "right_j0"
+    #constraints.joint_constraints.position = TORSO_POSITION
+    #constraints.joint_constraints.tolerance_above = TOLERANCE
+    #constraints.joint_constraints.tolerance_below = TOLERANCE
+    #constraints.joint_constraints.weight = 0.5
+    #constraints.joint_constraints = joint_constr
+    
+    #Creating a constraint on the link
+    path_constraint = Constraints()
+    path_constraint.name = "orientation_constraint"
+ 
+    link_constr = OrientationConstraint() 
+    link_constr.link_name = "right_l0"
+    link_constr.header.frame_id = "base"
+    link_constr.orientation.x = 0.00256 
+    link_constr.orientation.y = 0.000352
+    link_constr.orientation.z = 0.9383
+    link_constr.orientation.w = 0.03457
+    link_constr.absolute_x_axis_tolerance = 0.9 
+    link_constr.absolute_y_axis_tolerance = 0.9
+    link_constr.absolute_z_axis_tolerance = 0.9 
+    link_constr.weight = 1.0
+    path_constraint.orientation_constraints.append(link_constr)    
     #Get user input of (x,y,z) coordinates
-    #x_coord = raw_input('Enter x coordinate: ')
     x_coord = message.pose.position.x
-    #y_coord = raw_input('Enter y coordinate: ')
     y_coord = message.pose.position.y
-    #z_coord = raw_input('Enter z coordinate: ')
     z_coord = message.pose.position.z
-    print 'x: {} y: {} z: {}'.format(x_coord, y_coord, z_coord)
 
     #Set the desired position for the end effector HERE 
     request.ik_request.pose_stamped.pose.position.x = float(x_coord)
@@ -89,7 +103,7 @@ def inverse_kinematics(message):
 
     # Get quaternions 
     x_quat = message.pose.orientation.x 
-    y_quat = message.pose.orientation.y 
+    y_quat = -1.0*message.pose.orientation.y 
     z_quat = -1.0*message.pose.orientation.z
     w_quat = message.pose.orientation.w
 
@@ -106,12 +120,12 @@ def inverse_kinematics(message):
         print(response)
         group = MoveGroupCommander("right_arm")
 
-        #Set pose reference frame
-        #Comment out the set pose because we are getting the transform with respect to the base 
-        #group.set_pose_reference_frame("head_camera")
         #Setting position and orientation target
         group.set_pose_target(request.ik_request.pose_stamped)
+        group.set_path_constraints(path_constraint)
 
+        #Setting the Joint constraint 
+        #group.setPathConstraints(test_constraints) 
         group.go()
     
     except rospy.ServiceException, e:
