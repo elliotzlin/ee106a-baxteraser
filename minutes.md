@@ -117,3 +117,13 @@ A log of all of our meetings
   * Noted an improvement in our path planning
 * "Fixed" orientation of gripper (actually it's only good for near vertical boards)
 * Began attempting to transform board objects dynamically
+
+## 15 November 2017
+### 1030-
+* Arrived at decision to afix AR tag to wall
+  * Biggest implication being we are assuming a static wall
+  * Assuming a static wall, we don't have to update our board collision object
+  * In addition, we can affix the desired orientation of our gripper, potentially improving our IK performance
+* Noted bias of +0.15 for our head_camera's depth perception
+* Magic numbers set for wall
+  * Achieves very close results

@@ -13,6 +13,12 @@ from sensor_msgs.msg import JointState
 # Global variables we can access from other functions
 transformed_message = None
 tf_listener = None
+counter = 0
+
+# Board origin
+board_x = 0
+board_y = 0
+board_z = 0
 
 # Desired joint constraints
 TORSO_POSITION = 0
@@ -37,6 +43,9 @@ def transform_ar_tag(message):
     if message.markers == []:
         return
 
+    global counter
+    if counter > 1:
+        return
     # Create a TransformerROS to transform the AR tag poses we get
     t = TransformerROS(True, rospy.Duration(10.0))
 
@@ -63,9 +72,13 @@ def transform_ar_tag(message):
     pose = message.markers[0].pose # Assume one marker for now
     pose.header.frame_id = '/head_camera'
     transformed_message = t.transformPose('/base', pose)
+    global board_x, board_y, board_z
+    board_x = transformed_message.pose.position.x
+    board_y = transformed_message.pose.position.y
+    board_z = transformed_message.pose.position.z
+    counter += 1
 
-def inverse_kinematics(message): 
-    print(message)
+def inverse_kinematics(): 
     # Construct the request
     request = GetPositionIKRequest()
     request.ik_request.group_name = "right_arm"
@@ -84,33 +97,33 @@ def inverse_kinematics(message):
     joint_constr.weight = 0.5
     constraints.joint_constraints.append(joint_constr)
     
-    #Get the transformed AR Tag (x,y,z) coordinates
-    x_coord = message.pose.position.x
-    y_coord = message.pose.position.y
-    z_coord = message.pose.position.z
+    # Get the transformed AR Tag (x,y,z) coordinates
+    # Only care about the x coordinate of AR tag; tells use
+    # how far away wall is
+    x_coord = board_x
+    y_coord = board_y
+    z_coord = board_z
+
+    y_bias = raw_input("Input y coordinate: ")
+    z_bias = raw_input("Input z coordinate: ")
+
+    y_coord += float(y_bias)
+    z_coord += float(z_bias)
 
     #Set the desired orientation for the end effector HERE 
-    request.ik_request.pose_stamped.pose.position.x = float(x_coord)
+    request.ik_request.pose_stamped.pose.position.x = float(x_coord - 0.17)
     request.ik_request.pose_stamped.pose.position.y = float(y_coord)
     request.ik_request.pose_stamped.pose.position.z = float(z_coord)
 
-    # Get quaternions 
-    x_quat = -1.0*message.pose.orientation.x
-    y_quat = -1.0*message.pose.orientation.y 
-    z_quat = message.pose.orientation.z
-    w_quat = message.pose.orientation.w
-
     #Set the desired orientation for the end effector HERE 
-    request.ik_request.pose_stamped.pose.orientation.x = float(x_quat    )
-    request.ik_request.pose_stamped.pose.orientation.y = float(y_quat    )
-    request.ik_request.pose_stamped.pose.orientation.z = float(z_quat    )
-    request.ik_request.pose_stamped.pose.orientation.w = float(w_quat    )
+    request.ik_request.pose_stamped.pose.orientation.x = float(0.00141)
+    request.ik_request.pose_stamped.pose.orientation.y = float(.6631)
+    request.ik_request.pose_stamped.pose.orientation.z = float(-0.0021)
+    request.ik_request.pose_stamped.pose.orientation.w = float(.74847)
     try: 
         #Send the request to the service 
         response = compute_ik(request)
         
-        #Print the respondse HERE 
-        #print(response)
         group = MoveGroupCommander("right_arm")
 
         #Setting position and orientation target
@@ -134,7 +147,8 @@ def add_board_object():
 
     board_box = SolidPrimitive()
     board_box.type = 1
-    board_box.dimensions = [0.25, 4.0, 3.0]
+    # board_box.dimensions = [3.0, 4.0, 0.185]
+    board_box.dimensions = [0.27, 4.0, 3.0]
 
     board.primitives.append(board_box)
 
@@ -142,10 +156,14 @@ def add_board_object():
     board_pose.position.x = transformed_message.pose.position.x
     board_pose.position.y = transformed_message.pose.position.y
     board_pose.position.z = transformed_message.pose.position.z
-    board_pose.orientation.x = transformed_message.pose.orientation.x
-    board_pose.orientation.y = transformed_message.pose.orientation.y
-    board_pose.orientation.z = transformed_message.pose.orientation.z
-    board_pose.orientation.w = transformed_message.pose.orientation.w
+    # board_pose.orientation.x = transformed_message.pose.orientation.x
+    board_pose.orientation.x = 0
+    # board_pose.orientation.y = transformed_message.pose.orientation.y
+    board_pose.orientation.y = 0
+    # board_pose.orientation.z = transformed_message.pose.orientation.z
+    board_pose.orientation.z = 0
+    # board_pose.orientation.w = transformed_message.pose.orientation.w
+    board_pose.orientation.w = 0
 
     board.primitive_poses.append(board_pose)
 
@@ -153,6 +171,7 @@ def add_board_object():
     scene.world.collision_objects.append(board)
     scene.is_diff = True
     scene_diff_publisher.publish(scene)
+
 
 if __name__ == '__main__':
     # Wait for the IK service to become available
@@ -174,4 +193,4 @@ if __name__ == '__main__':
 
     while not rospy.is_shutdown():
         raw_input('Hit <Enter> to ENGAGE AR tag!')
-        inverse_kinematics(transformed_message)
+        inverse_kinematics()
