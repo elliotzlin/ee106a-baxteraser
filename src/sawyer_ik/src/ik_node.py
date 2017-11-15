@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import rospy
 from moveit_msgs.msg import Constraints, JointConstraint
+from moveit_msgs.msg import CollisionObject, PlanningScene
 from moveit_msgs.srv import GetPositionIK, GetPositionIKRequest, GetPositionIKResponse
-from geometry_msgs.msg import PoseStamped, TransformStamped
+from geometry_msgs.msg import PoseStamped, TransformStamped, Pose
+from shape_msgs.msg import SolidPrimitive
 from tf import TransformerROS, TransformListener
 from moveit_commander import MoveGroupCommander
 from ar_track_alvar_msgs.msg import AlvarMarkers
@@ -14,7 +16,7 @@ tf_listener = None
 
 # Desired joint constraints
 TORSO_POSITION = 0
-TOLERANCE = 0.5
+TOLERANCE = 0.75
 
 # Listener to handle pulling information about the AR tag(s)
 def ar_tag_listener():
@@ -93,9 +95,9 @@ def inverse_kinematics(message):
     request.ik_request.pose_stamped.pose.position.z = float(z_coord)
 
     # Get quaternions 
-    x_quat = message.pose.orientation.x 
+    x_quat = -1.0*message.pose.orientation.x
     y_quat = -1.0*message.pose.orientation.y 
-    z_quat = -1.0*message.pose.orientation.z
+    z_quat = message.pose.orientation.z
     w_quat = message.pose.orientation.w
 
     #Set the desired orientation for the end effector HERE 
@@ -108,7 +110,7 @@ def inverse_kinematics(message):
         response = compute_ik(request)
         
         #Print the respondse HERE 
-        print(response)
+        #print(response)
         group = MoveGroupCommander("right_arm")
 
         #Setting position and orientation target
@@ -120,6 +122,37 @@ def inverse_kinematics(message):
     
     except rospy.ServiceException, e:
         print "Service call failed: %s"%e
+
+def add_board_object():
+    # Some publisher
+    scene_diff_publisher = rospy.Publisher('planning_scene', PlanningScene, queue_size=1)
+    rospy.sleep(10.0)
+    # Create board object
+    board = CollisionObject()
+    board.header.frame_id = 'base'
+    board.id = 'board'
+
+    board_box = SolidPrimitive()
+    board_box.type = 1
+    board_box.dimensions = [0.25, 4.0, 3.0]
+
+    board.primitives.append(board_box)
+
+    board_pose = Pose()
+    board_pose.position.x = transformed_message.pose.position.x
+    board_pose.position.y = transformed_message.pose.position.y
+    board_pose.position.z = transformed_message.pose.position.z
+    board_pose.orientation.x = transformed_message.pose.orientation.x
+    board_pose.orientation.y = transformed_message.pose.orientation.y
+    board_pose.orientation.z = transformed_message.pose.orientation.z
+    board_pose.orientation.w = transformed_message.pose.orientation.w
+
+    board.primitive_poses.append(board_pose)
+
+    scene = PlanningScene()
+    scene.world.collision_objects.append(board)
+    scene.is_diff = True
+    scene_diff_publisher.publish(scene)
 
 if __name__ == '__main__':
     # Wait for the IK service to become available
@@ -135,6 +168,9 @@ if __name__ == '__main__':
 
     # Create a subscriber to get AR tag positions
     ar_tag_listener()
+
+    # Create our board scene object
+    add_board_object()
 
     while not rospy.is_shutdown():
         raw_input('Hit <Enter> to ENGAGE AR tag!')

@@ -75,7 +75,7 @@ A log of all of our meetings
 * We are now creating a node and package that will tie everything together nicely. 
 
 ## 10 November 2017 
-### 0000 - 0400
+### 0000-0400
 * Successfully completed AR tag transformations in```ik_node```
   * Creates a service to MoveIt
   * Creates a subscriber to the ```ar_pose_marker``` topic
@@ -83,7 +83,7 @@ A log of all of our meetings
   * Finished running all nodes and launch files into one launch file
 
 ## 10 November 2017 
-### 1500 - 1900 
+### 1500-1900 
 * Working locally on making the IK prefrom the entire process at the push of the enter key
 * Making sure that GIT properly shows the name of the individual whom commited.
 * Finally made a file that runs everything and reached CHECKPOINT 1 ... AGAIN ... 
@@ -91,16 +91,29 @@ A log of all of our meetings
 * Need to continue our work, making sure that the robot does not spin out of control 
 
 ## 12 November 2017 
-### 2300 - 0100
+### 2300-0100
 * Confirmed that Ada has serious error in finding the depth of an AR tag. Task at hand is to stop Ada from rotating camera away from tag.
 * https://docs.ros.org/kinetic/api/moveit_tutorials/html/doc/pr2_tutorials/planning/src/doc/move_group_interface_tutorial.html#planning-with-path-constraints This document might help us understand how to set some path constraints.
 * The IK is off by approxiamtely the legnth of the wrist 
 
 ## 13 November 2017 
-### 1900 - 
+### 1900-0200
 * Will begin testing whether or no the changes had an effect 
 * Found a huge problem when trying to run any type of motion planning with sawyer. You need to make sure that the electric_gripper:=true or else you will get a collision error. This error exsisted in the launch file. 
 * Decided to remove the following from the launch file 
 * <arg name="electric_gripper" value="true" />
 * <include file="$(find sawyer_moveit_config)/launch/sawyer_moveit.launch" /> 
 * Trying to figure out how to set some path constraints
+* Successfully reached CHECKPOINT 1 (actually)
+  * Torso joint successfully constrained
+  * Still notice path planning is difficult, but to be expected
+
+## 14 November 2017
+### 1900-0200
+* Figured out how to add scene objects to further constraint path
+* Created a SolidPrimitive block to model board
+* Verified that Sawyer is indeed able to wipe the board with MoveIt GUI
+* Switched to using a larger AR tag to improve tracking accuracy
+  * Noted an improvement in our path planning
+* "Fixed" orientation of gripper (actually it's only good for near vertical boards)
+* Began attempting to transform board objects dynamically
