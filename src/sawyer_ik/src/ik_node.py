@@ -116,10 +116,12 @@ def inverse_kinematics():
     request.ik_request.pose_stamped.pose.position.z = float(z_coord)
 
     #Set the desired orientation for the end effector HERE 
-    request.ik_request.pose_stamped.pose.orientation.x = float(0.00141)
-    request.ik_request.pose_stamped.pose.orientation.y = float(.6631)
-    request.ik_request.pose_stamped.pose.orientation.z = float(-0.0021)
-    request.ik_request.pose_stamped.pose.orientation.w = float(.74847)
+    #request.ik_request.pose_stamped.pose.orientation.x = float(0.00141)
+    #request.ik_request.pose_stamped.pose.orientation.y = float(.6631)
+    request.ik_request.pose_stamped.pose.orientation.y = 1.0/2**(1/2.0)
+    #request.ik_request.pose_stamped.pose.orientation.z = float(-0.0021)
+    #request.ik_request.pose_stamped.pose.orientation.w = float(.74847)
+    request.ik_request.pose_stamped.pose.orientation.w = 1.0/2**(1/2.0)
     try: 
         #Send the request to the service 
         response = compute_ik(request)
