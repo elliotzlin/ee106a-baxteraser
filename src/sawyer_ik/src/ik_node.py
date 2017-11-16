@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
-from moveit_msgs.msg import Constraints, JointConstraint
-from moveit_msgs.msg import CollisionObject, PlanningScene
+from moveit_msgs.msg import Constraints, JointConstraint, PositionConstraint
+from moveit_msgs.msg import CollisionObject, PlanningScene, RobotTrajectory 
 from moveit_msgs.srv import GetPositionIK, GetPositionIKRequest, GetPositionIKResponse
 from geometry_msgs.msg import PoseStamped, TransformStamped, Pose
 from shape_msgs.msg import SolidPrimitive
@@ -14,6 +14,10 @@ from sensor_msgs.msg import JointState
 transformed_message = None
 tf_listener = None
 counter = 0
+
+# Camera bias
+DEPTH_BIAS = 0.1
+PLANNING_BIAS = DEPTH_BIAS + 0.05
 
 # Board origin
 board_x = 0
@@ -96,7 +100,7 @@ def inverse_kinematics():
     joint_constr.tolerance_below = TOLERANCE
     joint_constr.weight = 0.5
     constraints.joint_constraints.append(joint_constr)
-    
+ 
     # Get the transformed AR Tag (x,y,z) coordinates
     # Only care about the x coordinate of AR tag; tells use
     # how far away wall is
@@ -110,8 +114,18 @@ def inverse_kinematics():
     y_coord += float(y_bias)
     z_coord += float(z_bias)
 
+    #Creating Path Planning 
+    waypoints = []
+    target_pose = Pose()
+    target_pose.position.x = float(x_coord - PLANNING_BIAS)
+    target_pose.position.y = float(y_coord)
+    target_pose.position.z = float(z_coord)
+    target_pose.orientation.y = 1.0/2**(1/2.0)
+    target_pose.orientation.w = 1.0/2**(1/2.0)
+    waypoints.append(target_pose) 
+
     #Set the desired orientation for the end effector HERE 
-    request.ik_request.pose_stamped.pose.position.x = float(x_coord - 0.17)
+    request.ik_request.pose_stamped.pose.position.x = float(x_coord - 0.18)
     request.ik_request.pose_stamped.pose.position.y = float(y_coord)
     request.ik_request.pose_stamped.pose.position.z = float(z_coord)
 
@@ -128,12 +142,18 @@ def inverse_kinematics():
         
         group = MoveGroupCommander("right_arm")
 
+        #Creating a Robot Trajectory for the Path Planning 
+        jump_thres = 0.0
+        eef_step = 0.01
+        path,fraction = group.compute_cartesian_path(waypoints, eef_step, jump_thres)
+        print("Path fraction: {}".format(fraction))
         #Setting position and orientation target
         group.set_pose_target(request.ik_request.pose_stamped)
 
         #Setting the Joint constraint 
         group.set_path_constraints(constraints) 
-        group.go()
+        #group.go()
+        group.execute(path)
     
     except rospy.ServiceException, e:
         print "Service call failed: %s"%e
@@ -150,7 +170,7 @@ def add_board_object():
     board_box = SolidPrimitive()
     board_box.type = 1
     # board_box.dimensions = [3.0, 4.0, 0.185]
-    board_box.dimensions = [0.27, 4.0, 3.0]
+    board_box.dimensions = [DEPTH_BIAS*2, 4.0, 3.0]
 
     board.primitives.append(board_box)
 

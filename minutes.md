@@ -119,11 +119,16 @@ A log of all of our meetings
 * Began attempting to transform board objects dynamically
 
 ## 15 November 2017
-### 1030-
+### 1030-1700
 * Arrived at decision to afix AR tag to wall
   * Biggest implication being we are assuming a static wall
   * Assuming a static wall, we don't have to update our board collision object
   * In addition, we can affix the desired orientation of our gripper, potentially improving our IK performance
-* Noted bias of +0.15 for our head_camera's depth perception
+* Noted bias of +0.07 for our head_camera's depth perception
 * Magic numbers set for wall
   * Achieves very close results
+* Talk with Laura
+  * Global variables into parameter server (lab 8)
+  * Logic code goes outside of code that defines publishers and subscribers (look at Occupancy Grid)
+* We set the bias of new AR Tag, set Cartesian Path to make sure that the gripper move parallel to the floor, and more importantly it moves in a straight line
+* Bottom Line: The robot can swipe.
