@@ -78,8 +78,8 @@ def transform_ar_tag(message):
     transformed_message = t.transformPose('/base', pose)
     global board_x, board_y, board_z
     board_x = transformed_message.pose.position.x
-    board_y = transformed_message.pose.position.y
-    board_z = transformed_message.pose.position.z
+    board_y = transformed_message.pose.position.y - 0.3
+    board_z = transformed_message.pose.position.z - 0.3
     counter += 1
 
 def inverse_kinematics(): 
@@ -104,56 +104,73 @@ def inverse_kinematics():
     # Get the transformed AR Tag (x,y,z) coordinates
     # Only care about the x coordinate of AR tag; tells use
     # how far away wall is
+    # x,y, z tell us the origin of the AR Tag
     x_coord = board_x
     y_coord = board_y
     z_coord = board_z
 
-    y_bias = raw_input("Input y coordinate: ")
-    z_bias = raw_input("Input z coordinate: ")
-
-    y_coord += float(y_bias)
-    z_coord += float(z_bias)
+    # y_coord += float(y_bias)
+    # z_coord += float(z_bias)
+    y_width = raw_input("Input width of the board: ")
+    z_height = raw_input("Input height of the board: ")
 
     #Creating Path Planning 
     waypoints = []
-    target_pose = Pose()
-    target_pose.position.x = float(x_coord - PLANNING_BIAS)
-    target_pose.position.y = float(y_coord)
-    target_pose.position.z = float(z_coord)
-    target_pose.orientation.y = 1.0/2**(1/2.0)
-    target_pose.orientation.w = 1.0/2**(1/2.0)
-    waypoints.append(target_pose) 
-
-    #Set the desired orientation for the end effector HERE 
-    request.ik_request.pose_stamped.pose = target_pose
-    try: 
-        #Send the request to the service 
-        response = compute_ik(request)
-        
-        group = MoveGroupCommander("right_arm")
-
-        #Creating a Robot Trajectory for the Path Planning 
-        jump_thres = 0.0
-        eef_step = 0.01
-        path,fraction = group.compute_cartesian_path(waypoints, eef_step, jump_thres)
-        print("Path fraction: {}".format(fraction))
-        #Setting position and orientation target
-        group.set_pose_target(request.ik_request.pose_stamped)
-
-        #Setting the Joint constraint 
-        group.set_path_constraints(constraints) 
-        if fraction < 0.5:
-            group.go()
+    z_bais = 0
+    for i in range(int(float(z_height)/.03)):
+        target_pose = Pose()
+        target_pose.position.x = float(x_coord - PLANNING_BIAS)
+        if i % 2 == 0:
+            target_pose.position.y = float(y_coord)
         else:
-            group.execute(path)
-    
-    except rospy.ServiceException, e:
-        print "Service call failed: %s"%e
+            target_pose.position.y = y_coord + float(y_width)
+        target_pose.position.z = float(z_coord + z_bais)
+        target_pose.orientation.y = 1.0/2**(1/2.0)
+        target_pose.orientation.w = 1.0/2**(1/2.0)
+        waypoints.append(target_pose)
+        z_bais += .03
+
+        #Set the desired orientation for the end effector HERE
+        request.ik_request.pose_stamped.pose = target_pose
+        try:
+            #Send the request to the service
+            response = compute_ik(request)
+
+            group = MoveGroupCommander("right_arm")
+            group.set_max_velocity_scaling_factor(0.75)
+
+            #Set the desired orientation for the end effector HERE
+            request.ik_request.pose_stamped.pose = target_pose
+
+            #Creating a Robot Trajectory for the Path Planning
+            jump_thres = 0.0
+            eef_step = 0.1
+            path,fraction = group.compute_cartesian_path([target_pose], eef_step, jump_thres)
+            print("Path fraction: {}".format(fraction))
+            #Setting position and orientation target
+            group.set_pose_target(request.ik_request.pose_stamped)
+
+            #Setting the Joint constraint
+            group.set_path_constraints(constraints)
+
+            if fraction < 0.5:
+                group.go()
+            else:
+                group.execute(path)
+            if i < int(float(z_height)/0.03) and i > 0:
+                target2 = target_pose
+                target2.position.z += 0.03
+                path, fraction = group.compute_cartesian_path([target2], eef_step, jump_thres)
+                group.set_path_constraints(constraints)
+                group.execute(path)
+
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
 
 def add_board_object():
     # Some publisher
     scene_diff_publisher = rospy.Publisher('planning_scene', PlanningScene, queue_size=1)
-    rospy.sleep(10.0)
+    rospy.sleep(5.0)
     # Create board object
     board = CollisionObject()
     board.header.frame_id = 'base'
