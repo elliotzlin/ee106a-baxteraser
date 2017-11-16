@@ -101,8 +101,8 @@ A log of all of our meetings
 * Will begin testing whether or no the changes had an effect 
 * Found a huge problem when trying to run any type of motion planning with sawyer. You need to make sure that the electric_gripper:=true or else you will get a collision error. This error exsisted in the launch file. 
 * Decided to remove the following from the launch file 
-* <arg name="electric_gripper" value="true" />
-* <include file="$(find sawyer_moveit_config)/launch/sawyer_moveit.launch" /> 
+* ```<arg name="electric_gripper" value="true" />```
+* ```<include file="$(find sawyer_moveit_config)/launch/sawyer_moveit.launch" />```
 * Trying to figure out how to set some path constraints
 * Successfully reached CHECKPOINT 1 (actually)
   * Torso joint successfully constrained
