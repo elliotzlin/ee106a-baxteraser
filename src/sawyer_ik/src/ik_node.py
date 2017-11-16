@@ -125,17 +125,7 @@ def inverse_kinematics():
     waypoints.append(target_pose) 
 
     #Set the desired orientation for the end effector HERE 
-    request.ik_request.pose_stamped.pose.position.x = float(x_coord - 0.18)
-    request.ik_request.pose_stamped.pose.position.y = float(y_coord)
-    request.ik_request.pose_stamped.pose.position.z = float(z_coord)
-
-    #Set the desired orientation for the end effector HERE 
-    #request.ik_request.pose_stamped.pose.orientation.x = float(0.00141)
-    #request.ik_request.pose_stamped.pose.orientation.y = float(.6631)
-    request.ik_request.pose_stamped.pose.orientation.y = 1.0/2**(1/2.0)
-    #request.ik_request.pose_stamped.pose.orientation.z = float(-0.0021)
-    #request.ik_request.pose_stamped.pose.orientation.w = float(.74847)
-    request.ik_request.pose_stamped.pose.orientation.w = 1.0/2**(1/2.0)
+    request.ik_request.pose_stamped.pose = target_pose
     try: 
         #Send the request to the service 
         response = compute_ik(request)
@@ -152,8 +142,10 @@ def inverse_kinematics():
 
         #Setting the Joint constraint 
         group.set_path_constraints(constraints) 
-        #group.go()
-        group.execute(path)
+        if fraction < 0.5:
+            group.go()
+        else:
+            group.execute(path)
     
     except rospy.ServiceException, e:
         print "Service call failed: %s"%e
