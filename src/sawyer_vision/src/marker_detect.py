@@ -26,7 +26,13 @@ class image_converter:
         except CvBridgeError as e:
             print(e)
         (rows,cols,channels) = cv_image.shape
-        kp = self.fast.detect(cv_image, None)
+        crop = cv_image[150:rows-150,150:cols-150]
+        kp = self.fast.detect(crop, None)
+        print(kp[0].pt)
+        for k in kp:
+            x = k.pt[0] + 150
+            y = k.pt[1] + 150
+            k.pt = (x,y)
         img2 = cv2.drawKeypoints(cv_image, kp, color=(255,0,0))
         cv2.imshow("Image window", img2)
         cv2.waitKey(3)
