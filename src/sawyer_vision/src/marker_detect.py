@@ -10,6 +10,8 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from matplotlib import pyplot as plt
 
+TAG_SIZE = 17.7 #cm
+
 class image_converter:
 
     def __init__(self):
@@ -19,6 +21,7 @@ class image_converter:
         self.image_sub = rospy.Subscriber('/io/internal_camera/head_camera/image_raw',Image,self.callback)
         self.fast = cv2.FastFeatureDetector()
         self.fast.setBool('nonmaxSuppression',0)
+        self.fast.setInt('threshold', 30)
 
     def callback(self, data):
         try:
@@ -28,7 +31,7 @@ class image_converter:
         (rows,cols,channels) = cv_image.shape
         crop = cv_image[150:rows-150,150:cols-150]
         kp = self.fast.detect(crop, None)
-        print(kp[0].pt)
+        print(len(kp))
         for k in kp:
             x = k.pt[0] + 150
             y = k.pt[1] + 150
