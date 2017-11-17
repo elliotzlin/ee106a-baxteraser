@@ -132,3 +132,6 @@ A log of all of our meetings
   * Logic code goes outside of code that defines publishers and subscribers (look at Occupancy Grid)
 * We set the bias of new AR Tag, set Cartesian Path to make sure that the gripper move parallel to the floor, and more importantly it moves in a straight line
 * Bottom Line: The robot can swipe.
+
+### 2300-0145
+* Programmed routine to swipe an area bounded by a rectangle
