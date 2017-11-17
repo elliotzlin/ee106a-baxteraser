@@ -3,10 +3,12 @@ import roslib
 import sys
 import rospy
 import cv2
+import numpy as np
 
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
+from matplotlib import pyplot as plt
 
 class image_converter:
 
@@ -15,6 +17,8 @@ class image_converter:
 
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber('/io/internal_camera/head_camera/image_raw',Image,self.callback)
+        self.fast = cv2.FastFeatureDetector()
+        self.fast.setBool('nonmaxSuppression',0)
 
     def callback(self, data):
         try:
@@ -22,9 +26,9 @@ class image_converter:
         except CvBridgeError as e:
             print(e)
         (rows,cols,channels) = cv_image.shape
-        if cols > 60 and rows > 60:
-            cv2.circle(cv_image, (50,50), 10, 225)
-        cv2.imshow("Image window", cv_image)
+        kp = self.fast.detect(cv_image, None)
+        img2 = cv2.drawKeypoints(cv_image, kp, color=(255,0,0))
+        cv2.imshow("Image window", img2)
         cv2.waitKey(3)
 
         try:
