@@ -26,6 +26,5 @@
          <remap from="camera_info"   to="$(arg cam_info_topic)" />
     </node>
 
-    <node pkg="sawyer_ik" name="ik_node" type="ik_node.py" output="screen" />
 
 </launch>
