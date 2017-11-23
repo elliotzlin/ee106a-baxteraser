@@ -135,3 +135,16 @@ A log of all of our meetings
 
 ### 2300-0145
 * Programmed routine to swipe an area bounded by a rectangle
+
+## 16-17 November 2017
+### 1900-0800
+* Commenced work on modularizing board swiping function
+* Commenced work on openCV module of project
+* Whipped up FAST feature detection to detect AR tag; ended up abandoning it in favor of a square finding routing from an OpenCV example
+* Broke for lunch at 0430 at Denny's
+  * Sophia was able to join us for the meal as well
+
+## 22 November 2017
+### 0415-
+* Successfully calculated homography transformation matrix
+  * By successfully I mean the function call didn't error out
