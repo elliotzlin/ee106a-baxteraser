@@ -145,9 +145,15 @@ A log of all of our meetings
   * Sophia was able to join us for the meal as well
 
 ## 22 November 2017
-### 0415-
+### 0415-1910
 * Successfully calculated homography transformation matrix
   * By successfully I mean the function call didn't error out
 * Checked the accuracy of tf transformations from base
   * Concluded that it's "good enough"
   * Also deduced that a tape measure would really come in handy
+* Started working on separate callback that would detect markers on the whiteboard and bound it with rectange
+* Successfully implemented routine that would bound a collection of points with a rectangle
+* Action items for next work session:
+  * Verify edge lengths of rectangle to verify homography
+  * Publish coordinates of this bounding rectangle
+  * Read from topic in ```ik_node```

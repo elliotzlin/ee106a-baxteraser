@@ -18,29 +18,25 @@ class image_converter:
         self.image_pub = rospy.Publisher("image_topic_2", Image, queue_size=1)
 
         self.bridge = CvBridge()
-        self.image_sub = rospy.Subscriber('/io/internal_camera/head_camera/image_raw',Image,self.callback)
+        self.image_sub = rospy.Subscriber('/io/internal_camera/head_camera/image_raw',Image,self.homography_callback)
+        self.marker_sub = rospy.Subscriber('/io/internal_camera/head_camera/image_raw',Image,self.marker_callback)
         self.fast = cv2.FastFeatureDetector()
-        self.fast.setBool('nonmaxSuppression',0)
-        self.fast.setInt('threshold', 30)
+        self.fast.setBool('nonmaxSuppression',1)
+        self.fast.setInt('threshold', 10)
 
         self.H = 0
 
-    def callback(self, data):
+    def homography_callback(self, data):
         try:
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
             print(e)
         (rows,cols,channels) = cv_image.shape
-        crop = cv_image[150:rows-150,150:cols-150]
-        kp = self.fast.detect(crop, None)
-        for k in kp:
-            x = k.pt[0] + 150
-            y = k.pt[1] + 150
-            k.pt = (x,y)
-        img2 = cv2.drawKeypoints(cv_image, kp, color=(255,0,0))
+        # Find squares (aka the AR tag)
         squares = find_squares(cv_image)
         sqr = 0
         # Get valid square coordinate
+        # TODO This relies on ARtag being centered in image; this is bad
         for sq in squares:
             min_x = 1000
             for point in sq:
@@ -68,6 +64,31 @@ class image_converter:
         self.image_sub.unregister()
         print(self.H)
 
+    def marker_callback(self, data):
+        try:
+            cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+        except CvBridgeError as e:
+            print(e)
+        (rows,cols,channels) = cv_image.shape
+        # Apply Gaussian blur to smooth image and reduce noise
+        img2 = cv2.GaussianBlur(cv_image, (5, 5), 0)
+        crop = img2[150:rows-300,150:cols-150]
+        kp = self.fast.detect(crop, None)
+        points = []
+        for k in kp:
+            x = k.pt[0] + 150
+            y = k.pt[1] + 150
+            k.pt = (x,y)
+            points.append([int(x),int(y)])
+        # Find the convex hull of points to make it work for boudningRect
+        hull = cv2.convexHull(np.array(points))
+        # Bound the points with a rectangle
+        x,y,w,h = cv2.boundingRect(hull)
+        cv2.rectangle(cv_image,(x,y),(x+w,y+h),(0,255,0),2)
+        img3 = cv2.drawKeypoints(cv_image, kp, color=(255,0,0))
+        cv2.imshow("Detect Marks", img3)
+        cv2.waitKey(3)
+
 # Find squares function taken from the opencv sample
 def find_squares(img):
     def angle_cos(p0, p1, p2):
@@ -76,7 +97,6 @@ def find_squares(img):
     img = cv2.GaussianBlur(img, (5, 5), 0)
     squares = []
     for gray in cv2.split(img):
-        cv2.imshow("gray", gray)
         for thrs in range(0, 255, 26):
             if thrs == 0:
                 bin = cv2.Canny(gray, 0, 50, apertureSize=5)
