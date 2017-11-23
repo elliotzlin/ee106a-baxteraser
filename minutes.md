@@ -148,3 +148,6 @@ A log of all of our meetings
 ### 0415-
 * Successfully calculated homography transformation matrix
   * By successfully I mean the function call didn't error out
+* Checked the accuracy of tf transformations from base
+  * Concluded that it's "good enough"
+  * Also deduced that a tape measure would really come in handy

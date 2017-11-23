@@ -57,13 +57,16 @@ class image_converter:
         # Retval returned above is our homography transformation matrix
         self.H = retval
         cv2.drawContours(cv_image, [sqr], 0, (0, 255, 0), 3)
-        cv2.imshow("Image window", cv_image)
-        cv2.waitKey(3)
+        #cv2.imshow("Image window", cv_image)
+        #cv2.waitKey(3)
 
         try:
             self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
         except CvBridgeError as e:
             print(e)
+        # Unsubscribe from topic because we have all we need
+        self.image_sub.unregister()
+        print(self.H)
 
 # Find squares function taken from the opencv sample
 def find_squares(img):
@@ -73,6 +76,7 @@ def find_squares(img):
     img = cv2.GaussianBlur(img, (5, 5), 0)
     squares = []
     for gray in cv2.split(img):
+        cv2.imshow("gray", gray)
         for thrs in range(0, 255, 26):
             if thrs == 0:
                 bin = cv2.Canny(gray, 0, 50, apertureSize=5)
