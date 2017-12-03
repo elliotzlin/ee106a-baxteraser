@@ -16,7 +16,8 @@ tf_listener = None
 counter = 0
 
 # Camera bias
-DEPTH_BIAS = 0.1
+DEPTH_BIAS = 0.1 # Probably without gripper
+# DEPTH_BIAS = 0.22 # probably with gripper; this value is difference between X position of AR tag and that of the gripper base
 PLANNING_BIAS = DEPTH_BIAS + 0.05
 
 # Board origin

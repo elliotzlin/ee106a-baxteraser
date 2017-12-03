@@ -5,7 +5,7 @@ import rospy
 import cv2
 import numpy as np
 
-from std_msgs.msg import String
+from std_msgs.msg import String, Float64MultiArray
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from matplotlib import pyplot as plt
@@ -26,6 +26,8 @@ class image_converter:
 
         self.H = 0
 
+        self.pub = rospy.Publisher('Bounding_Points', Float64MultiArray, queue_size=10)
+
     def homography_callback(self, data):
         try:
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
@@ -33,6 +35,7 @@ class image_converter:
             print(e)
         (rows,cols,channels) = cv_image.shape
         # Find squares (aka the AR tag)
+        # TODO Crop cv_image so we don't capture whiteboard as a square
         squares = find_squares(cv_image)
         sqr = 0
         # Get valid square coordinate
@@ -55,7 +58,6 @@ class image_converter:
         cv2.drawContours(cv_image, [sqr], 0, (0, 255, 0), 3)
         #cv2.imshow("Image window", cv_image)
         #cv2.waitKey(3)
-
         try:
             self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
         except CvBridgeError as e:
@@ -72,18 +74,43 @@ class image_converter:
         (rows,cols,channels) = cv_image.shape
         # Apply Gaussian blur to smooth image and reduce noise
         img2 = cv2.GaussianBlur(cv_image, (5, 5), 0)
-        crop = img2[150:rows-300,150:cols-150]
+        crop = img2[250:rows-300,250:cols-150]
         kp = self.fast.detect(crop, None)
         points = []
         for k in kp:
-            x = k.pt[0] + 150
-            y = k.pt[1] + 150
+            x = k.pt[0] + 250
+            y = k.pt[1] + 250
             k.pt = (x,y)
             points.append([int(x),int(y)])
         # Find the convex hull of points to make it work for boudningRect
         hull = cv2.convexHull(np.array(points))
+
         # Bound the points with a rectangle
         x,y,w,h = cv2.boundingRect(hull)
+        # Top Right
+        TRx = x + w
+        TRy = y
+        # Bottom left
+        BLx = x
+        BLy = y + h
+        # COnverting the points to meters
+        Q = np.linalg.inv(self.H)
+        base = np.array([x, y, 1])
+        bottom_left = np.array([BLx, BLy, 1])
+        top_right = np.array([TRx, TRy, 1])
+
+        new_base = Q.dot(base)
+        new_left = Q.dot(bottom_left)
+        new_right = Q.dot(top_right)
+
+        n_w = np.linalg.norm(new_base[:2] - new_right[:2])
+        n_h = np.linalg.norm(new_base[:2] - new_left[:2])
+
+
+        bounding_points = Float64MultiArray
+        bounding_points.data = [new_base[0],new_base[1],n_w,n_h]
+        self.pub.publish(bounding_points)
+        print(bounding_points.data)
         cv2.rectangle(cv_image,(x,y),(x+w,y+h),(0,255,0),2)
         img3 = cv2.drawKeypoints(cv_image, kp, color=(255,0,0))
         cv2.imshow("Detect Marks", img3)

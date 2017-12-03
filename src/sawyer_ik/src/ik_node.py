@@ -14,6 +14,11 @@ from sensor_msgs.msg import JointState
 transformed_message = None
 tf_listener = None
 counter = 0
+# x this is the top left coordinate
+# y this is the top left coordinate
+# w this represents the width of the bounding box
+# h this represents the height of the bounding box
+bounding_points = None
 
 # Camera bias
 DEPTH_BIAS = 0.1
@@ -78,9 +83,12 @@ def transform_ar_tag(message):
     transformed_message = t.transformPose('/base', pose)
     global board_x, board_y, board_z
     board_x = transformed_message.pose.position.x
-    board_y = transformed_message.pose.position.y - 0.3
-    board_z = transformed_message.pose.position.z - 0.3
+    board_y = transformed_message.pose.position.y - 0.177/2
+    board_z = transformed_message.pose.position.z - 0.177/2
     counter += 1
+
+def bounding_rectangle(data):
+    global bounding_points = data.data
 
 def inverse_kinematics(): 
     # Construct the request
@@ -105,25 +113,30 @@ def inverse_kinematics():
     # Only care about the x coordinate of AR tag; tells use
     # how far away wall is
     # x,y, z tell us the origin of the AR Tag
-    x_coord = board_x
-    y_coord = board_y
-    z_coord = board_z
+    x_coord = board_x # DONT CHANGE
+    y_coord = bounding_points[0] - bounding_point[2]
+    z_coord = bounding_points[1] - bounding_point[3]
 
     # y_coord += float(y_bias)
     # z_coord += float(z_bias)
-    y_width = raw_input("Input width of the board: ")
-    z_height = raw_input("Input height of the board: ")
+    y_width = bounding_points[2]
+    z_height = bounding_points[3]
 
     #Creating Path Planning 
     waypoints = []
     z_bais = 0
+    rospy.Subscriber("Bounding Points", Float64MultiArray, bounding_rectangle)
+    print("OMMMMMMMMMMMMMMMMMMMMMMMMMGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG!!!!!!!!!!!!!!")
+    print(bounding_rectangle)
     for i in range(int(float(z_height)/.03)):
         target_pose = Pose()
         target_pose.position.x = float(x_coord - PLANNING_BIAS)
         if i % 2 == 0:
+            #Starting positions
             target_pose.position.y = float(y_coord)
         else:
             target_pose.position.y = y_coord + float(y_width)
+        #Starting positions
         target_pose.position.z = float(z_coord + z_bais)
         target_pose.orientation.y = 1.0/2**(1/2.0)
         target_pose.orientation.w = 1.0/2**(1/2.0)
