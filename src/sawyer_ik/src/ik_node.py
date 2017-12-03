@@ -14,8 +14,8 @@ from sensor_msgs.msg import JointState
 transformed_message = None
 tf_listener = None
 counter = 0
-# x this is the top left coordinate
-# y this is the top left coordinate
+# x this is the bottom right coordinate
+# y this is the bottom right coordinate
 # w this represents the width of the bounding box
 # h this represents the height of the bounding box
 bounding_points = None
@@ -114,18 +114,15 @@ def inverse_kinematics():
     # how far away wall is
     # x,y, z tell us the origin of the AR Tag
     x_coord = board_x # DONT CHANGE
-    y_coord = bounding_points[0] - bounding_point[2]
-    z_coord = bounding_points[1] - bounding_point[3]
+    y_coord = bounding_points[0]
+    z_coord = bounding_points[1]
 
-    # y_coord += float(y_bias)
-    # z_coord += float(z_bias)
     y_width = bounding_points[2]
     z_height = bounding_points[3]
 
     #Creating Path Planning 
     waypoints = []
     z_bais = 0
-    rospy.Subscriber("Bounding Points", Float64MultiArray, bounding_rectangle)
     print("OMMMMMMMMMMMMMMMMMMMMMMMMMGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG!!!!!!!!!!!!!!")
     print(bounding_rectangle)
     for i in range(int(float(z_height)/.03)):
@@ -235,6 +232,9 @@ if __name__ == '__main__':
     # Create our board scene object
     add_board_object()
 
+    # Listen for bounding rectange messages
+    rospy.Subscriber("eounding_points", Float64MultiArray, bounding_rectangle)
+
     while not rospy.is_shutdown():
-        raw_input('Hit <Enter> to ENGAGE AR tag!')
+        raw_input('Hit <Enter> to ENGAGE white board')
         inverse_kinematics()

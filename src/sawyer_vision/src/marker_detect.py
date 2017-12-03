@@ -26,7 +26,7 @@ class image_converter:
 
         self.H = 0
 
-        self.pub = rospy.Publisher('Bounding_Points', Float64MultiArray, queue_size=10)
+        self.pub = rospy.Publisher('bounding_points', Float64MultiArray, queue_size=10)
 
     def homography_callback(self, data):
         try:
@@ -99,6 +99,7 @@ class image_converter:
         bottom_left = np.array([BLx, BLy, 1])
         top_right = np.array([TRx, TRy, 1])
 
+        # new_base is top left corner of rectangle
         new_base = Q.dot(base)
         new_left = Q.dot(bottom_left)
         new_right = Q.dot(top_right)
@@ -106,9 +107,12 @@ class image_converter:
         n_w = np.linalg.norm(new_base[:2] - new_right[:2])
         n_h = np.linalg.norm(new_base[:2] - new_left[:2])
 
+        # Get bottom right corner
+        bottom_right = new_base + np.array([n_w, n_h, 0])
 
+        # Publish bounding points data
         bounding_points = Float64MultiArray
-        bounding_points.data = [new_base[0],new_base[1],n_w,n_h]
+        bounding_points.data = [bottom_right[0],bottom_right[1],n_w,n_h]
         self.pub.publish(bounding_points)
         print(bounding_points.data)
         cv2.rectangle(cv_image,(x,y),(x+w,y+h),(0,255,0),2)
