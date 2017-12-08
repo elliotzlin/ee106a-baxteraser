@@ -10,7 +10,7 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from matplotlib import pyplot as plt
 
-TAG_SIZE = 17.7 #cm
+TAG_SIZE = 0.177 #m
 
 class image_converter:
 
@@ -108,10 +108,10 @@ class image_converter:
         n_h = np.linalg.norm(new_base[:2] - new_left[:2])
 
         # Get bottom right corner
-        bottom_right = new_base + np.array([n_w, n_h, 0])
+        bottom_right = new_base - np.array([n_w, n_h, 0])
 
         # Publish bounding points data
-        bounding_points = Float64MultiArray
+        bounding_points = Float64MultiArray()
         bounding_points.data = [bottom_right[0],bottom_right[1],n_w,n_h]
         self.pub.publish(bounding_points)
         print(bounding_points.data)

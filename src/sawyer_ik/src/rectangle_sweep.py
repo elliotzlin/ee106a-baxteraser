@@ -9,23 +9,15 @@ from tf import TransformerROS, TransformListener
 from moveit_commander import MoveGroupCommander
 from ar_track_alvar_msgs.msg import AlvarMarkers
 from sensor_msgs.msg import JointState
-from std_msgs.msg import Float64MultiArray
-
-import intera_interface
 
 # Global variables we can access from other functions
 transformed_message = None
 tf_listener = None
 counter = 0
-# x this is the bottom right coordinate
-# y this is the bottom right coordinate
-# w this represents the width of the bounding box
-# h this represents the height of the bounding box
-bounding_points = None
 
 # Camera bias
 DEPTH_BIAS = 0.1
-PLANNING_BIAS = DEPTH_BIAS + 0.001
+PLANNING_BIAS = DEPTH_BIAS + 0.05
 
 # Board origin
 board_x = 0
@@ -86,13 +78,9 @@ def transform_ar_tag(message):
     transformed_message = t.transformPose('/base', pose)
     global board_x, board_y, board_z
     board_x = transformed_message.pose.position.x
-    board_y = transformed_message.pose.position.y - 0.177/2
-    board_z = transformed_message.pose.position.z - 0.177/2
+    board_y = transformed_message.pose.position.y - 0.177
+    board_z = transformed_message.pose.position.z - 0.177
     counter += 1
-
-def bounding_rectangle(data):
-    global bounding_points
-    bounding_points = data.data
 
 def inverse_kinematics(): 
     # Construct the request
@@ -117,27 +105,25 @@ def inverse_kinematics():
     # Only care about the x coordinate of AR tag; tells use
     # how far away wall is
     # x,y, z tell us the origin of the AR Tag
-    x_coord = board_x # DONT CHANGE
-    y_coord = bounding_points[0]
-    z_coord = bounding_points[1]
+    x_coord = board_x
+    y_coord = board_y
+    z_coord = board_z
 
-    y_width = bounding_points[2]
-    z_height = bounding_points[3]
+    # y_coord += float(y_bias)
+    # z_coord += float(z_bias)
+    y_width = raw_input("Input width of the board: ")
+    z_height = raw_input("Input height of the board: ")
 
     #Creating Path Planning 
     waypoints = []
     z_bais = 0
-    print("OMMMMMMMMMMMMMMMMMMMMMMMMMGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG!!!!!!!!!!!!!!")
-    print(bounding_points)
     for i in range(int(float(z_height)/.03)):
         target_pose = Pose()
         target_pose.position.x = float(x_coord - PLANNING_BIAS)
         if i % 2 == 0:
-            #Starting positions
             target_pose.position.y = float(y_coord)
         else:
             target_pose.position.y = y_coord + float(y_width)
-        #Starting positions
         target_pose.position.z = float(z_coord + z_bais)
         target_pose.orientation.y = 1.0/2**(1/2.0)
         target_pose.orientation.w = 1.0/2**(1/2.0)
@@ -179,25 +165,7 @@ def inverse_kinematics():
                 group.execute(path)
 
         except rospy.ServiceException, e:
-            print "Service call failed: %s"%e 
-    # Desired init pose
-    #init_goal = [0.364, -0.122, 1.097]
-    #init_pose = Pose()
-    #init_pose.position.x = 0.364
-    #init_pose.position.y = -0.122
-    #init_pose.position.z = 1.097
-    #request.ik_request.pose_stamped.pose = init_pose
-    #response = compute_ik(request)
-    #group.set_pose_target(request.ik_request.pose_stamped)
-    joint_positions = [0, -2.286107421875, 2.7116845703125, -1.36857421875, 2.9767255859375, -1.3972255859375, 4.297482421875]
-    joint_positions_dict = {'right_j0':  0, 'right_j1': -2.286107421875, 'right_j2': 2.7116845703125, 'right_j3': -1.36857421875, 'right_j4': 2.9767255859375, 'right_j5': -1.3972255859375, 'right_j6': 4.297482421875}
-
-    group.clear_pose_targets()
-    print(group.get_current_joint_values())
-    #group.set_joint_value_target(joint_positions_dict)
-    #group.go()
-
-
+            print "Service call failed: %s"%e
 
 def add_board_object():
     # Some publisher
@@ -254,14 +222,6 @@ if __name__ == '__main__':
     # Create our board scene object
     add_board_object()
 
-    # Listen for bounding rectange messages
-    rospy.Subscriber("bounding_points", Float64MultiArray, bounding_rectangle)
-
-    # For storing initial position
-    right = intera_interface.Limb('right')
-    joint_positions = {'right_j0':  0, 'right_j1': -2.286107421875, 'right_j2': 2.7116845703125, 'right_j3': -1.36857421875, 'right_j4': 2.9767255859375, 'right_j5': -1.3972255859375, 'right_j6': 4.297482421875}
-
     while not rospy.is_shutdown():
-        raw_input('Hit <Enter> to ENGAGE white board')
+        raw_input('Hit <Enter> to ENGAGE AR tag!')
         inverse_kinematics()
-        #right.move_to_joint_positions(joint_positions)
